@@ -14,15 +14,13 @@ driver = webdriver.Chrome(executable_path='F:\Python_Workspace\TestScraper\chrom
 driver.implicitly_wait(30)
 driver.get(url)
 
-# After opening the url clicks the link
-python_link = driver.find_element_by_link_text('Appliances')
-python_link.click()  # click link
+
 
 # setup dataFrame
 df = pd.DataFrame([],
                   columns=["VendorID", "PartNumber", "Name", "Price", "Description", "PhotoPath"])
 
-pagesrc1 = BeautifulSoup(driver.page_source, 'lxml')
+
 
 vendorList = []
 partList = []
@@ -30,58 +28,69 @@ nameList = []
 priceList = []
 descList = []
 PhotoList = []
-x = 1
-for page in pagesrc1.find_all('li'):
-    # give pagesource to beautifulsoup
+pagesrc1 = BeautifulSoup(driver.page_source, 'lxml')\
+
+for link in pagesrc1.find_all('li'):
+    # After opening the url clicks the link
+    print(str(link.string))
+    cat_link = driver.find_element_by_link_text(str(link.string))
+    cat_link.click()  # click link
     pagesrc2 = BeautifulSoup(driver.page_source, 'lxml')
+    x = 1
 
-    # selects the elements that have the product name information contained in the div class title
-    for vendor in pagesrc2.find_all('div', class_=re.compile("^merchantLogo")):
-        img = vendor.find('img', alt=True)
+    for page in pagesrc2.find_all('li'):
+        # give pagesource to beautifulsoup
+        pagesrc3 = BeautifulSoup(driver.page_source, 'lxml')
 
-        vendorList.append(str(img['alt']))\
+        # selects the elements that have the product name information contained in the div class title
+        for vendor in pagesrc3.find_all('div', class_=re.compile("^merchantLogo")):
+            img = vendor.find('img', alt=True)
 
-        # end loop block
+            vendorList.append(str(img['alt']))\
 
-    # loop has completed add list to dataframe
+            # end loop block
 
-    # selects the elements that have the partNumber information just made up from the image path
-    for partNumber in pagesrc2.find_all('div', class_=re.compile("^col-xs-3 col-md-2 listProdImg")):
-        img = partNumber.find('img')
+        # loop has completed add list to dataframe
 
-        partList.append(re.sub(r";", "", re.search(r"\d+?;", str(img['src'])).group(0)))
+        # selects the elements that have the partNumber information just made up from the image path
+        for partNumber in pagesrc3.find_all('div', class_=re.compile("^col-xs-3 col-md-2 listProdImg")):
+            img = partNumber.find('img')
 
-        # end loop block
+            partList.append(re.sub(r";", "", re.search(r"\d+?;", str(img['src'])).group(0)))
 
-    # selects the elements that have the product name information contained in the div class title
-    for title in pagesrc2.find_all('div', class_=re.compile("^title")):
+            # end loop block
 
-        nameList.append(str(title.string))
+        # selects the elements that have the product name information contained in the div class title
+        for title in pagesrc3.find_all('div', class_=re.compile("^title")):
 
-        # end loop block
+            nameList.append(str(title.string))
 
-    # selects the price information from the div class and adds to the list
-    for price in pagesrc2.find_all('div', id=re.compile("^offerPrice")):
+            # end loop block
 
-        priceList.append(re.sub(r"[$,]", "", str(price.string)))
+        # selects the price information from the div class and adds to the list
+        for price in pagesrc3.find_all('div', id=re.compile("^offerPrice")):
 
-        # end loop block
+            priceList.append(re.sub(r"[$,]", "", str(price.string)))
 
-    # selects the description information from the page and adds it to the list
-    for description in pagesrc2.find_all('p', class_=re.compile("^desc")):
+            # end loop block
 
-        descList.append(str(description.string))
+        # selects the description information from the page and adds it to the list
+        for description in pagesrc3.find_all('p', class_=re.compile("^desc")):
 
-        # end loop block
+            descList.append(str(description.string))
 
-    print(x)
-    try:
-        link = driver.find_element_by_id("forward")
-        link.click()
-    except NoSuchElementException:
-        break
-    link = None
-    x += 1
+            # end loop block
+
+        print(x)
+        try:
+            link = driver.find_element_by_id("forward")
+            link.click()
+        except NoSuchElementException:
+            break
+        link = None
+        x += 1
+        # end loop
+    driver.execute_script("window.history.go(-" + str(x) + ")")
     # end loop
 # end loop
 
@@ -94,7 +103,7 @@ df['Description'] = descList
 
 
 # goes back one page
-# driver.execute_script("window.history.go(-1)")
+
 
 # end the Selenium browser session
 driver.quit()
