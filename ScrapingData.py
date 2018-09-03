@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import re
@@ -29,9 +30,8 @@ nameList = []
 priceList = []
 descList = []
 PhotoList = []
-
+x = 1
 for page in pagesrc1.find_all('li'):
-    x = 1
     # give pagesource to beautifulsoup
     pagesrc2 = BeautifulSoup(driver.page_source, 'lxml')
 
@@ -74,11 +74,13 @@ for page in pagesrc1.find_all('li'):
 
         # end loop block
 
-    link = driver.find_element_by_id("forward")
-    if link is not None:
+    print(x)
+    try:
+        link = driver.find_element_by_id("forward")
         link.click()
-    else:
+    except NoSuchElementException:
         break
+    link = None
     x += 1
     # end loop
 # end loop
