@@ -1,10 +1,11 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
 from tabulate import tabulate
+from urllib import request
+import os
 
 # launch url
 url = "http://buyvia.cnxpartner.com/"
@@ -24,10 +25,10 @@ partList = []
 nameList = []
 priceList = []
 descList = []
-PhotoList = []
+photoList = []
 
 # new page source
-pagesrc1 = BeautifulSoup(driver.page_source, 'lxml')\
+pagesrc1 = BeautifulSoup(driver.page_source, 'lxml')
 
 for link in pagesrc1.find_all('li'):
 
@@ -105,6 +106,29 @@ for link in pagesrc1.find_all('li'):
 
                     # end loop block
 
+                for photo in pagesrc5.find_all('div', class_=re.compile("^col-xs-3 col-md-2 listProdImg")):
+                    img = photo.find('img')
+                    fname = re.sub(r";", "", re.search(r"\d+?;", str(img['src'])).group(0))
+
+                    # make directory if there isn't one
+                    directory1 = "F:\Python_Workspace\TestScraper\Pictures\\" \
+                                 + re.sub(r"[~!@#$%^&*)(\-\'\"<>?\/\.\{\}\[\]+=:;,\\|]", "",
+                                          re.sub(r"\s", "_", str(link2.string)))
+                    if not os.path.exists(directory1):
+                        os.makedirs(directory1)
+
+                    request.urlretrieve(str(img['src']), "F:\Python_Workspace\TestScraper\Pictures\\"
+                                        + re.sub(r"[~!@#$%^&*)(\-\'\"<>?\/\.\{\}\[\]+=:;,\\|]", "",
+                                                 re.sub(r"\s", "_", str(link2.string)))
+                                        + "\image" + fname + ".png")
+
+                    photoList.append("F:\Python_Workspace\TestScraper\Pictures\\"
+                                     + re.sub(r"[~!@#$%^&*)(\-\'\"<>?\/\.\{\}\[\]+=:;,\\|]", "",
+                                              re.sub(r"\s", "_", str(link2.string)))
+                                     + "\image" + fname + ".png")
+
+                    # end loop block
+
                 idx3 += 1
                 try:
                     link = driver.find_element_by_id("forward")
@@ -140,7 +164,9 @@ df['PartNumber'] = partList
 df['Name'] = nameList
 df['Price'] = priceList
 df['Description'] = descList
+df['PhotoPath'] = photoList
 
+df.to_csv('out.csv')
 
 # end the Selenium browser session
 driver.quit()
