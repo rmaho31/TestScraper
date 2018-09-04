@@ -75,13 +75,12 @@ for link in pagesrc1.find_all('li'):
 
                     # end loop block
 
-                # loop has completed add list to dataframe
-
                 # selects the elements that have the partNumber information just made up from the image path
                 for partNumber in pagesrc5.find_all('div', class_=re.compile("^col-xs-3 col-md-2 listProdImg")):
                     img = partNumber.find('img')
+                    vCode = re.search(r"^\w", str(link3.string)).group(0)
 
-                    partList.append(re.sub(r";", "", re.search(r"\d+?;", str(img['src'])).group(0)))
+                    partList.append(vCode + "." + re.sub(r";", "", re.search(r"\d+?;", str(img['src'])).group(0)))
 
                     # end loop block
 
@@ -139,6 +138,7 @@ for link in pagesrc1.find_all('li'):
 
                 # end loop
 
+
             # steps backwards by index counter
             driver.execute_script("window.history.go(-" + str(idx3) + ")")
 
@@ -166,7 +166,7 @@ df['Price'] = priceList
 df['Description'] = descList
 df['PhotoPath'] = photoList
 
-df.to_csv('out.csv')
+df.to_csv('out.csv', index=False)
 
 # end the Selenium browser session
 driver.quit()
